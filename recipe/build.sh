@@ -85,6 +85,9 @@ BUILD_OPTS="
 if [[ "${target_platform}" == "osx-arm64" ]]; then
   BUILD_OPTS="${BUILD_OPTS} --config=macos_arm64"
 fi
+if [[ ${cuda_compiler_version} != "None" ]]; then
+  BUILD_OPTS="${BUILD_OPTS} --gpu"
+fi
 export TF_ENABLE_XLA=0
 export BUILD_TARGET="//tensorflow/tools/pip_package:build_pip_package //tensorflow/tools/lib_package:libtensorflow //tensorflow:libtensorflow_cc.so"
 
@@ -105,6 +108,51 @@ export TF_NEED_MPI=0
 export TF_DOWNLOAD_CLANG=0
 export TF_SET_ANDROID_WORKSPACE=0
 export TF_CONFIGURE_IOS=0
+export CC_OPT_FLAGS="-march=nocona -mtune=haswell"
+export TF_ENABLE_XLA=1
+export TF_NEED_OPENCL=0
+export TF_NEED_OPENCL_SYCL=0
+export TF_NEED_COMPUTECPP=0
+export TF_NEED_COMPUTECPP=0
+export TF_NEED_ROCM=0
+export TF_NEED_MPI=0
+export TF_SET_ANDROID_WORKSPACE=0
+export TF_CONFIGURE_IOS=0
+if [[ ${cuda_compiler_version} != "None" ]]; then
+    export USE_CUDA=1
+    export TF_CUDA_COMPUTE_CAPABILITIES="3.5;5.0+PTX"
+    if [[ ${cuda_compiler_version} == 9.0* ]]; then
+        export TF_CUDA_COMPUTE_CAPABILITIES="$TF_CUDA_COMPUTE_CAPABILITIES;6.0;7.0"
+    elif [[ ${cuda_compiler_version} == 9.2* ]]; then
+        export TF_CUDA_COMPUTE_CAPABILITIES="$TF_CUDA_COMPUTE_CAPABILITIES;6.0;6.1;7.0"
+    elif [[ ${cuda_compiler_version} == 10.* ]]; then
+        export TF_CUDA_COMPUTE_CAPABILITIES="$TF_CUDA_COMPUTE_CAPABILITIES;6.0;6.1;7.0;7.5"
+    elif [[ ${cuda_compiler_version} == 11.0* ]]; then
+        export TF_CUDA_COMPUTE_CAPABILITIES="$TF_CUDA_COMPUTE_CAPABILITIES;6.0;6.1;7.0;7.5;8.0"
+    elif [[ ${cuda_compiler_version} == 11.1 ]]; then
+        export TF_CUDA_COMPUTE_CAPABILITIES="$TF_CUDA_COMPUTE_CAPABILITIES;6.0;6.1;7.0;7.5;8.0;8.6"
+    elif [[ ${cuda_compiler_version} == 11.2 ]]; then
+        export TF_CUDA_COMPUTE_CAPABILITIES="$TF_CUDA_COMPUTE_CAPABILITIES;6.0;6.1;7.0;7.5;8.0;8.6"
+    else
+        echo "unsupported cuda version. edit build_pytorch.sh"
+        exit 1
+    fi
+    export TF_NEED_CUDA=1
+    export TF_CUDA_VERSION="${cuda_compiler_version}"
+    export TF_CUDNN_VERSION="${cudnn}"
+    export TF_CUDA_CLANG=0
+    export TF_DOWNLOAD_CLANG=0
+    export TF_NEED_TENSORRT=0
+    export NCCL_ROOT_DIR=$PREFIX
+    export USE_STATIC_NCCL=0
+    export USE_STATIC_CUDNN=0
+    export CUDA_TOOLKIT_ROOT_DIR=$CUDA_HOME
+    export MAGMA_HOME="${PREFIX}"
+fi
+export TF_NCCL_VERSION=""
+export GCC_HOST_COMPILER_PATH="${CC}"
+export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
+
 
 # Get rid of unwanted defaults
 sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
