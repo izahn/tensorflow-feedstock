@@ -1,0 +1,43 @@
+aws_sdk_cpp:
+- 1.8.151
+c_compiler:
+- vs2017
+channel_sources:
+- conda-forge,defaults
+channel_targets:
+- conda-forge main
+cuda_compiler_version:
+- None
+cudnn:
+- undefined
+cxx_compiler:
+- vs2017
+grpc_cpp:
+- '1.37'
+nccl:
+- '2'
+numpy:
+- '1.17'
+pin_run_as_build:
+  python:
+    min_pin: x.x
+    max_pin: x.x
+  sqlite:
+    max_pin: x
+  zlib:
+    max_pin: x.x
+python:
+- 3.8.* *_cpython
+sqlite:
+- '3'
+target_platform:
+- win-64
+tflow_variant:
+- gpu
+vc:
+- '14'
+zip_keys:
+- - python
+  - numpy
+zlib:
+- '1.2'
