@@ -1,5 +1,5 @@
 aws_sdk_cpp:
-- 1.8.151
+- 1.8.186
 c_compiler:
 - vs2017
 channel_sources:
@@ -14,11 +14,15 @@ cxx_compiler:
 - vs2017
 grpc_cpp:
 - '1.37'
+mkl:
+- '2019'
 nccl:
 - '2'
 numpy:
 - '1.19'
 pin_run_as_build:
+  mkl:
+    max_pin: x
   python:
     min_pin: x.x
     max_pin: x.x
