@@ -15,8 +15,6 @@ source:
     # general patches
     - 0101-include-c-and-cc-headers.patch                  # [linus]
     - 0103-BUILD-changes-for-external-sqlite-package.patch # [linux]
-    - 0104-Fixed-linking-error-in-conda-builds.patch        # [linux]
-    - 0106-Upstream-patch-for-absl-error.patch             # [linux]
     - 0107-do-not-hardcode-ca-cert-location.patch          # [linux]
     # gpu specific patches
     - 0201-add-additional-cuda-rpaths.patch                # [linux]
