@@ -81,7 +81,7 @@ BUILD_OPTS="
     --define=PREFIX=${PREFIX}
     --define=PROTOBUF_INCLUDE_PATH=${PREFIX}/include
     --cpu=${TARGET_CPU}
-    --linkopt="-L${PREFIX}/lib"
+    --linkopt=-L${PREFIX}/lib
     --strip=always
     --define=LIBDIR=$PREFIX/lib
     --define=INCLUDEDIR="$PREFIX/include"
