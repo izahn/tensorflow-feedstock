@@ -15,6 +15,7 @@ source:
     # requires setting GRPCIO_VERSION in build script
     - patches/0004-loosen-requirements.patch
     - patches/0005-osx-arm64.patch  # [osx and arm64]
+    - patches/0006-add-additional-cuda-rpaths.patch
 
 build:
   number: 1
