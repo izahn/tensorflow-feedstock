@@ -18,7 +18,7 @@ source:
 
 build:
   number: 0
-  skip: true  # [win]
+  skip: true  # [not linux]
 
 requirements:
   build:
@@ -36,7 +36,7 @@ requirements:
     - sed
   host:
     # conda build requirements
-    - python
+    - python =3.9
     - pip
     - zlib
     - libpng
