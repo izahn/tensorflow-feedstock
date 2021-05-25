@@ -89,7 +89,6 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
           --verbose_failures \
           --config=opt \
           --config=cuda \
-          --config=mkl \
           --strip=always \
           --color=yes \
           --curses=no \
