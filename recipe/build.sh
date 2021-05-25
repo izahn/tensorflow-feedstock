@@ -110,6 +110,8 @@ export TF_CONFIGURE_IOS=0
 sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
 sed -i -e "/PREFIX/c\ " .bazelrc
 
+export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
+
 ./configure
 echo "build --config=noaws" >> .bazelrc
 
