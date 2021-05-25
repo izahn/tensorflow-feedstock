@@ -22,7 +22,7 @@ source:
 
 build:
   number: 0
-  string: gpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}
+  string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}
   skip: True  # [not x86_64]
   skip: True  # [win and vc<14]
   entry_points:
@@ -64,7 +64,7 @@ requirements:
     - mkl
     - numpy
     - opt_einsum
-    # build only requirement, doesn't need a run dep below
+    # build only requirement, d oesn't need a run dep below
     - pip
     - protobuf
     - python
