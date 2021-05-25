@@ -135,11 +135,12 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     BUILD_OPTS="${BUILD_OPTS} --config=cuda"
 fi
 
+bazel clean --expunge
+bazel shutdown
+
 # Get rid of unwanted defaults
 sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
 sed -i -e "/PREFIX/c\ " .bazelrc
-
-export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
 
 ./configure
 echo "build --config=noaws" >> .bazelrc

@@ -28,10 +28,7 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - {{ compiler('cuda') }}  # [cuda_compiler_version != "None"]
-    # see https://github.com/tensorflow/tensorflow/blob/v{{ version }}/.bazelversion
-    - bazel 3.1.0  # [not osx]
-    # For osx-arm64 cross-compilation to work, we need bazel>=4.1
-    - bazel        # [osx]
+    - bazel
     - nasm
     - sed
   host:
