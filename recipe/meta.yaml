@@ -35,6 +35,9 @@ requirements:
     - nasm
     - sed
   host:
+    # GPU requirements
+    - cudnn                           # [cuda_compiler_version != "None"]
+    - nccl                            # [cuda_compiler_version != "None"]
     # conda build requirements
     - python =3.9
     - pip
@@ -91,6 +94,8 @@ outputs:
     script: build_pkg.sh  # [not win]
     script: build_pkg.bat  # [win]
     build:
+      string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
+      string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
       entry_points:
         - toco_from_protos = tensorflow.lite.toco.python.toco_from_protos:main
         - tflite_convert = tensorflow.lite.python.tflite_convert:main
@@ -107,6 +112,9 @@ outputs:
         - {{ compiler('cxx') }}
         - {{ compiler('cuda') }}  # [cuda_compiler_version != "None"]
       host:
+        # GPU requirements
+        - cudnn                           # [cuda_compiler_version != "None"]
+        - nccl                            # [cuda_compiler_version != "None"]
         # conda build requirements
         - python
         - pip
@@ -194,14 +202,20 @@ outputs:
   - name: libtensorflow
     script: cp_libtensorflow.sh
     build:
+      string: cuda{{ cuda_compiler_version | replace('.', '') }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
+      string: cpu_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
       skip: true  # [not linux]
     requirements:
       # build requirements needs to pick up the compiler run_exports
       build:
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
+        - {{ compiler('cuda') }}  # [cuda_compiler_version != "None"]
       # host requirements to pick up run_exports
       host:
+        # GPU requirements
+        - cudnn                           # [cuda_compiler_version != "None"]
+        - nccl                            # [cuda_compiler_version != "None"]
         - giflib
         - grpc-cpp
         - icu
@@ -227,6 +241,8 @@ outputs:
   - name: libtensorflow_cc
     script: cp_libtensorflow_cc.sh
     build:
+      string: cuda{{ cuda_compiler_version | replace('.', '') }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
+      string: cpu_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
       skip: true  # [not linux]
     requirements:
       # build requirements needs to pick up the compiler run_exports
