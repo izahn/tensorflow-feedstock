@@ -110,7 +110,7 @@ export TF_CONFIGURE_IOS=0
 sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
 sed -i -e "/PREFIX/c\ " .bazelrc
 
-export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
+export TF_CUDA_PATHS="${PREFIX},${CUDA_HOME}"
 
 ./configure
 echo "build --config=noaws" >> .bazelrc
@@ -121,4 +121,3 @@ bazel ${BAZEL_OPTS} build ${BUILD_OPTS} ${BUILD_TARGET}
 # build a whl file
 mkdir -p $SRC_DIR/tensorflow_pkg
 bash -x bazel-bin/tensorflow/tools/pip_package/build_pip_package $SRC_DIR/tensorflow_pkg
-
