@@ -108,6 +108,7 @@ export TF_CONFIGURE_IOS=0
 
 ## cuda settings
 if [[ ${cuda_compiler_version} != "None" ]]; then
+    export GCC_HOST_COMPILER_PATH="${CC}"
     export CUDA_TOOLKIT_PATH=/usr/local/cuda-${cuda_compiler_version}
     export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
     export USE_CUDA=1
@@ -132,15 +133,7 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export TF_CUDA_VERSION="${cuda_compiler_version}"
     export TF_CUDNN_VERSION="${cudnn}"
     export TF_NCCL_VERSION=""
-    BUILD_OPTS="
-    --crosstool_top=//custom_toolchain:toolchain
-    --logging=6
-    --verbose_failures
-    --config=opt
-    --define=PREFIX=${PREFIX}
-    --define=PROTOBUF_INCLUDE_PATH=${PREFIX}/include
-    --config=cuda
-    --cpu=${TARGET_CPU}"
+    BUILD_OPTS="${BUILD_OPTS} --config=cuda"
 fi
 
 # Get rid of unwanted defaults
