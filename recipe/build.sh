@@ -132,11 +132,16 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export TF_CUDA_VERSION="${cuda_compiler_version}"
     export TF_CUDNN_VERSION="${cudnn}"
     export TF_NCCL_VERSION=""
-    BUILD_OPTS="${BUILD_OPTS} --config=cuda"
+    BUILD_OPTS="
+    --crosstool_top=//custom_toolchain:toolchain
+    --logging=6
+    --verbose_failures
+    --config=opt
+    --define=PREFIX=${PREFIX}
+    --define=PROTOBUF_INCLUDE_PATH=${PREFIX}/include
+    --config=cuda
+    --cpu=${TARGET_CPU}"
 fi
-
-bazel clean --expunge
-bazel shutdown
 
 # Get rid of unwanted defaults
 sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
