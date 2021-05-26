@@ -3,8 +3,8 @@
 set -ex
 
 export PATH="$PWD:$PATH"
-export CC=$(basename $CC)
-export CXX=$(basename $CXX)
+#export CC=$(basename $CC)
+#export CXX=$(basename $CXX)
 export LIBDIR=$PREFIX/lib
 export INCLUDEDIR=$PREFIX/include
 
