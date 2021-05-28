@@ -23,8 +23,8 @@ sed -i -e "s:\${PREFIX}:${PREFIX}:" tensorflow/core/platform/default/build_confi
 # Needs c++17, try on linux
 #  com_googlesource_code_re2
 
-# # The possible values are specified in third_party/systemlibs/syslibs_configure.bzl
-# # The versions for them can be found in tensorflow/workspace.bzl
+# The possible values are specified in third_party/systemlibs/syslibs_configure.bzl
+# The versions for them can be found in tensorflow/workspace.bzl
 export TF_SYSTEM_LIBS="
   absl_py
   astor_archive
@@ -33,7 +33,6 @@ export TF_SYSTEM_LIBS="
   com_github_googleapis_googleapis
   com_github_googlecloudplatform_google_cloud_cpp
   com_github_grpc_grpc
-  com_google_protobuf
   curl
   cython
   dill_archive
@@ -45,7 +44,6 @@ export TF_SYSTEM_LIBS="
   org_sqlite
   png
   pybind11
-  zlib
   "
 
 sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
@@ -150,6 +148,10 @@ fi
 
 bazel clean --expunge
 bazel shutdown
+
+# Get rid of unwanted defaults
+sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
+sed -i -e "/PREFIX/c\ " .bazelrc
 
 ./configure
 echo "build --config=noaws" >> .bazelrc
