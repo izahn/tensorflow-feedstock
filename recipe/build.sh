@@ -2,6 +2,14 @@
 
 set -vex
 
+
+export PATH="$PWD:$PATH"
+#export CC=$(basename $CC)
+#export CXX=$(basename $CXX)
+export LIBDIR=$PREFIX/lib
+export INCLUDEDIR=$PREFIX/include
+export GCC_HOST_COMPILER_PATH="${CC}"
+
 # expand PREFIX in BUILD file
 sed -i -e "s:\${PREFIX}:${PREFIX}:" tensorflow/core/platform/default/build_config/BUILD
 
@@ -68,6 +76,8 @@ if [[ "${target_platform}" == "osx-64" ]]; then
   TARGET_CPU=darwin
 fi
 
+source ${RECIPE_DIR}/gen-bazel-toolchain.sh
+
 # If you really want to see what is executed, add --subcommands
 BUILD_OPTS="
     --crosstool_top=//custom_toolchain:toolchain
@@ -92,19 +102,13 @@ export BUILD_TARGET="//tensorflow/tools/pip_package:build_pip_package //tensorfl
 export PYTHON_BIN_PATH=${PYTHON}
 export PYTHON_LIB_PATH=${SP_DIR}
 export USE_DEFAULT_PYTHON_LIB_PATH=1
-export CUDA_TOOLKIT_PATH=/usr/local/cuda-${cuda_compiler_version}
 
-# export PATH="$CUDA_TOOLKIT_PATH/bin:$PATH"
-# export LD_LIBRARY_PATH="$CUDA_TOOLKIT_PATH/lib64 $LD_LIBRARY_PATH"
 # additional settings
-# do not build with MKL support
-export TF_NEED_MKL=0
 export CC_OPT_FLAGS="-march=nocona -mtune=haswell"
-export TF_ENABLE_XLA=1
 export TF_NEED_OPENCL=0
 export TF_NEED_OPENCL_SYCL=0
 export TF_NEED_COMPUTECPP=0
-export TF_NEED_COMPUTECPP=0
+export TF_NEED_CUDA=0
 export TF_CUDA_CLANG=0
 export TF_NEED_TENSORRT=0
 export TF_NEED_ROCM=0
@@ -148,7 +152,7 @@ fi
 
 
 export TF_NCCL_VERSION=""
-export GCC_HOST_COMPILER_PATH="${CC}"
+
 # Use system paths here rather than $PREFIX to allow Bazel to find the correct
 # libraries.  RPATH is adjusted post build to link to the DSOs in $PREFIX
 export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
@@ -157,16 +161,10 @@ bazel clean --expunge
 bazel shutdown
 
 ./configure
+echo "build --config=noaws" >> .bazelrc
 
 bazel ${BAZEL_OPTS} build ${BUILD_OPTS} ${BUILD_TARGET}
 
-
 # build a whl file
 mkdir -p $SRC_DIR/tensorflow_pkg
-bazel-bin/tensorflow/tools/pip_package/build_pip_package $SRC_DIR/tensorflow_pkg
-
-# install using pip from the whl file
-pip install --no-deps $SRC_DIR/tensorflow_pkg/*.whl
-
-# The tensorboard package has the proper entrypoint
-rm -f ${PREFIX}/bin/tensorboard
+bash -x bazel-bin/tensorflow/tools/pip_package/build_pip_package $SRC_DIR/tensorflow_pkg
