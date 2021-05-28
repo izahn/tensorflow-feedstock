@@ -8,6 +8,9 @@ set -vex
 export LIBDIR=$PREFIX/lib
 export INCLUDEDIR=$PREFIX/include
 
+# expand PREFIX in BUILD file
+sed -i -e "s:\${PREFIX}:${PREFIX}:" tensorflow/core/platform/default/build_config/BUILD
+
 # Needs a bazel build:
 # com_google_absl
 # Build failures in tensorflow/core/platform/s3/aws_crypto.cc
@@ -30,7 +33,6 @@ export TF_SYSTEM_LIBS="
   com_github_googleapis_googleapis
   com_github_googlecloudplatform_google_cloud_cpp
   com_github_grpc_grpc
-  com_google_protobuf
   curl
   cython
   dill_archive
@@ -42,8 +44,6 @@ export TF_SYSTEM_LIBS="
   org_sqlite
   png
   pybind11
-  snappy
-  zlib
   "
 
 sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
@@ -81,7 +81,11 @@ BUILD_OPTS="
     --config=opt
     --define=PREFIX=${PREFIX}
     --define=PROTOBUF_INCLUDE_PATH=${PREFIX}/include
-    --cpu=${TARGET_CPU}"
+    --cpu=${TARGET_CPU}
+    --linkopt=-L${PREFIX}/lib
+    --strip=always
+    --define=LIBDIR=$PREFIX/lib
+    --define=INCLUDEDIR=$PREFIX/include"
 
 if [[ "${target_platform}" == "osx-arm64" ]]; then
   BUILD_OPTS="${BUILD_OPTS} --config=macos_arm64"
@@ -137,7 +141,7 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export TF_NEED_TENSORRT=0
     export GCC_HOST_COMPILER_PATH="${CC}"
     export TF_NCCL_VERSION=""
-    BUILD_OPTS="${BUILD_OPTS} --config=cuda "
+    BUILD_OPTS="${BUILD_OPTS} --config=cuda"
     export CC_OPT_FLAGS="-march=nocona -mtune=haswell"
     export GCC_HOST_COMPILER_PATH="${CC}"
 fi
