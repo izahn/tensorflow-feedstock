@@ -2,13 +2,11 @@
 
 set -vex
 
-
-export PATH="$PWD:$PATH"
+#export PATH="$PWD:$PATH"
 #export CC=$(basename $CC)
 #export CXX=$(basename $CXX)
 export LIBDIR=$PREFIX/lib
 export INCLUDEDIR=$PREFIX/include
-export GCC_HOST_COMPILER_PATH="${CC}"
 
 # expand PREFIX in BUILD file
 sed -i -e "s:\${PREFIX}:${PREFIX}:" tensorflow/core/platform/default/build_config/BUILD
@@ -27,29 +25,28 @@ sed -i -e "s:\${PREFIX}:${PREFIX}:" tensorflow/core/platform/default/build_confi
 
 # # The possible values are specified in third_party/systemlibs/syslibs_configure.bzl
 # # The versions for them can be found in tensorflow/workspace.bzl
-# export TF_SYSTEM_LIBS="
-#   absl_py
-#   astor_archive
-#   astunparse_archive
-#   boringssl
-#   com_github_googleapis_googleapis
-#   com_github_googlecloudplatform_google_cloud_cpp
-#   com_github_grpc_grpc
-#   com_google_protobuf
-#   curl
-#   cython
-#   dill_archive
-#   flatbuffers
-#   gast_archive
-#   gif
-#   icu
-#   libjpeg_turbo
-#   org_sqlite
-#   png
-#   pybind11
-#   snappy
-#   zlib
-#   "
+export TF_SYSTEM_LIBS="
+  absl_py
+  astor_archive
+  astunparse_archive
+  boringssl
+  com_github_googleapis_googleapis
+  com_github_googlecloudplatform_google_cloud_cpp
+  com_github_grpc_grpc
+  com_google_protobuf
+  curl
+  cython
+  dill_archive
+  flatbuffers
+  gast_archive
+  gif
+  icu
+  libjpeg_turbo
+  org_sqlite
+  png
+  pybind11
+  zlib
+  "
 
 sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
 
@@ -104,7 +101,6 @@ export PYTHON_LIB_PATH=${SP_DIR}
 export USE_DEFAULT_PYTHON_LIB_PATH=1
 
 # additional settings
-export CC_OPT_FLAGS="-march=nocona -mtune=haswell"
 export TF_NEED_OPENCL=0
 export TF_NEED_OPENCL_SYCL=0
 export TF_NEED_COMPUTECPP=0
@@ -148,14 +144,9 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export GCC_HOST_COMPILER_PATH="${CC}"
     export TF_NCCL_VERSION=""
     BUILD_OPTS="${BUILD_OPTS} --config=cuda"
+    export CC_OPT_FLAGS="-march=nocona -mtune=haswell"
+    export GCC_HOST_COMPILER_PATH="${CC}"
 fi
-
-
-export TF_NCCL_VERSION=""
-
-# Use system paths here rather than $PREFIX to allow Bazel to find the correct
-# libraries.  RPATH is adjusted post build to link to the DSOs in $PREFIX
-export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
 
 bazel clean --expunge
 bazel shutdown
@@ -163,8 +154,10 @@ bazel shutdown
 ./configure
 echo "build --config=noaws" >> .bazelrc
 
+# build using bazel
 bazel ${BAZEL_OPTS} build ${BUILD_OPTS} ${BUILD_TARGET}
 
 # build a whl file
 mkdir -p $SRC_DIR/tensorflow_pkg
 bash -x bazel-bin/tensorflow/tools/pip_package/build_pip_package $SRC_DIR/tensorflow_pkg
+
