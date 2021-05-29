@@ -2,9 +2,6 @@
 
 set -vex
 
-export LIBDIR=$PREFIX/lib
-export INCLUDEDIR=$PREFIX/include
-
 # Needs a bazel build:
 # com_google_absl
 # Build failures in tensorflow/core/platform/s3/aws_crypto.cc
@@ -102,6 +99,7 @@ export TF_CONFIGURE_IOS=0
 
 ## cuda settings
 if [[ ${cuda_compiler_version} != "None" ]]; then
+    sed -i -e "s:\${PREFIX}:${PREFIX}:" tensorflow/core/platform/default/build_config/BUILD
     export CUDA_TOOLKIT_PATH=/usr/local/cuda-${cuda_compiler_version}
     export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
     export USE_CUDA=1
@@ -162,6 +160,8 @@ else
     export PATH="$PWD:$PATH"
     export CC=$(basename $CC)
     export CXX=$(basename $CXX)
+    export LIBDIR=$PREFIX/lib
+    export INCLUDEDIR=$PREFIX/include
     sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
     source ${RECIPE_DIR}/gen-bazel-toolchain.sh
     # Get rid of unwanted defaults
