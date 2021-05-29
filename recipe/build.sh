@@ -99,7 +99,9 @@ export TF_CONFIGURE_IOS=0
 
 ## cuda settings
 if [[ ${cuda_compiler_version} != "None" ]]; then
+
     sed -i -e "s:\${PREFIX}:${PREFIX}:" tensorflow/core/platform/default/build_config/BUILD
+
     export CUDA_TOOLKIT_PATH=/usr/local/cuda-${cuda_compiler_version}
     export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
     export USE_CUDA=1
@@ -120,6 +122,7 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
         echo "unsupported cuda version. edit build_pytorch.sh"
         exit 1
     fi
+    
     export TF_NEED_CUDA=1
     export TF_CUDA_VERSION="${cuda_compiler_version}"
     export TF_CUDNN_VERSION="${cudnn}"
@@ -130,6 +133,7 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export TF_NCCL_VERSION=""
     export CC_OPT_FLAGS="-march=nocona -mtune=haswell"
     export GCC_HOST_COMPILER_PATH="${CC}"
+    
     BUILD_OPTS="
     --copt=-march=nocona
     --copt=-mtune=haswell
@@ -156,6 +160,9 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     --host_copt=-DNO_CONSTEXPR_FOR_YOU=1
     --define=LIBDIR=$PREFIX/lib
     --define=INCLUDEDIR=$PREFIX/include"
+
+    ## Doesn't work with CUDA builds, don't know why
+    export TF_SYSTEM_LIBS=""
 else
     export PATH="$PWD:$PATH"
     export CC=$(basename $CC)
