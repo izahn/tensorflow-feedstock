@@ -2,9 +2,6 @@
 
 set -vex
 
-#export PATH="$PWD:$PATH"
-#export CC=$(basename $CC)
-#export CXX=$(basename $CXX)
 export LIBDIR=$PREFIX/lib
 export INCLUDEDIR=$PREFIX/include
 
@@ -46,8 +43,6 @@ export TF_SYSTEM_LIBS="
   zlib
   "
 
-sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
-
 # do not build with MKL support
 export TF_NEED_MKL=0
 export BAZEL_MKL_OPT=""
@@ -61,17 +56,15 @@ export CC_OPT_FLAGS="${CFLAGS}"
 # Dependency graph:
 # bazel query 'deps(//tensorflow/tools/lib_package:libtensorflow)' --output graph > graph.in
 if [[ "${target_platform}" == osx-* ]]; then
-  export LDFLAGS="${LDFLAGS} -lz -framework CoreFoundation -Xlinker -undefined -Xlinker dynamic_lookup"
+    export LDFLAGS="${LDFLAGS} -lz -framework CoreFoundation -Xlinker -undefined -Xlinker dynamic_lookup"
 else
-  export LDFLAGS="${LDFLAGS} -lrt"
+    export LDFLAGS="${LDFLAGS} -lrt"
 fi
 
 if [[ "${target_platform}" == "osx-64" ]]; then
-  # Tensorflow doesn't cope yet with an explicit architecture (darwin_x86_64) on osx-64 yet.
-  TARGET_CPU=darwin
+    # Tensorflow doesn't cope yet with an explicit architecture (darwin_x86_64) on osx-64 yet.
+    TARGET_CPU=darwin
 fi
-
-source ${RECIPE_DIR}/gen-bazel-toolchain.sh
 
 # If you really want to see what is executed, add --subcommands
 BUILD_OPTS="
@@ -81,14 +74,10 @@ BUILD_OPTS="
     --config=opt
     --define=PREFIX=${PREFIX}
     --define=PROTOBUF_INCLUDE_PATH=${PREFIX}/include
-    --cpu=${TARGET_CPU}
-    --linkopt=-L${PREFIX}/lib
-    --strip=always
-    --define=LIBDIR=$PREFIX/lib
-    --define=INCLUDEDIR=$PREFIX/include"
+    --cpu=${TARGET_CPU}"
 
 if [[ "${target_platform}" == "osx-arm64" ]]; then
-  BUILD_OPTS="${BUILD_OPTS} --config=macos_arm64"
+    BUILD_OPTS="${BUILD_OPTS} --config=macos_arm64"
 fi
 export TF_ENABLE_XLA=0
 export BUILD_TARGET="//tensorflow/tools/pip_package:build_pip_package //tensorflow/tools/lib_package:libtensorflow //tensorflow:libtensorflow_cc.so"
@@ -141,19 +130,49 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export TF_NEED_TENSORRT=0
     export GCC_HOST_COMPILER_PATH="${CC}"
     export TF_NCCL_VERSION=""
-    BUILD_OPTS="${BUILD_OPTS} --config=cuda"
     export CC_OPT_FLAGS="-march=nocona -mtune=haswell"
     export GCC_HOST_COMPILER_PATH="${CC}"
-    ## Don't know why but system libs don't work with cuda config...
-    export TF_SYSTEM_LIBS=""
+    BUILD_OPTS="
+    --copt=-march=nocona
+    --copt=-mtune=haswell
+    --copt=-ftree-vectorize
+    --copt=-fPIC
+    --copt=-fstack-protector-strong
+    --copt=-O2
+    --cxxopt=-fvisibility-inlines-hidden
+    --cxxopt=-fmessage-length=0
+    --linkopt=-zrelro
+    --linkopt=-znow
+    --linkopt=-L${PREFIX}/lib
+    --verbose_failures
+    --config=opt
+    --config=cuda
+    --strip=always
+    --color=yes
+    --curses=no
+    --action_env=PYTHON_BIN_PATH=${PYTHON}
+    --action_env=PYTHON_LIB_PATH=${SP_DIR}
+    --python_path=${PYTHON}
+    --define=PREFIX=$PREFIX
+    --copt=-DNO_CONSTEXPR_FOR_YOU=1
+    --host_copt=-DNO_CONSTEXPR_FOR_YOU=1
+    --define=LIBDIR=$PREFIX/lib
+    --define=INCLUDEDIR=$PREFIX/include"
+else
+    export PATH="$PWD:$PATH"
+    export CC=$(basename $CC)
+    export CXX=$(basename $CXX)
+    sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
+    source ${RECIPE_DIR}/gen-bazel-toolchain.sh
+    # Get rid of unwanted defaults
+    sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
+    sed -i -e "/PREFIX/c\ " .bazelrc
 fi
+
+echo $(bazel --version) | cut -d" " -f2 > tensorflow/.bazelversion
 
 bazel clean --expunge
 bazel shutdown
-
-# Get rid of unwanted defaults
-sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
-sed -i -e "/PREFIX/c\ " .bazelrc
 
 ./configure
 echo "build --config=noaws" >> .bazelrc

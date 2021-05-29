@@ -15,7 +15,10 @@ source:
     # requires setting GRPCIO_VERSION in build script
     - patches/0004-loosen-requirements.patch
     - patches/0005-osx-arm64.patch  # [osx and arm64]
-
+    - patches/0006-fix-linking-error-in-conda-builds.patch  # [cuda_compiler_version != "None"]
+    - patches/0007-add-additional-cuda-rpaths.patch  # [cuda_compiler_version != "None"]
+    - patches/0008-remove-extra-null-terminators.patch  # [cuda_compiler_version != "None"]
+    - patches/0009-build-changes-for-external-sqlite-package.patch  # [cuda_compiler_version != "None"]
 build:
   number: 1
   skip: true  # [win]
@@ -29,11 +32,12 @@ requirements:
     - {{ compiler('cxx') }}
     - {{ compiler('cuda') }}  # [cuda_compiler_version != "None"]
     # see https://github.com/tensorflow/tensorflow/blob/v{{ version }}/.bazelversion
-    - bazel 3.1.0  # [not osx]
+    - bazel <=3.99  # [not osx]
     # For osx-arm64 cross-compilation to work, we need bazel>=4.1
     - bazel        # [osx]
     - nasm
     - sed
+    - coreutils
   host:
     # GPU requirements
     - cudnn                           # [cuda_compiler_version != "None"]
