@@ -1,10 +1,10 @@
 #!/bin/bash
 
-set -ex
+set -vex
 
-export PATH="$PWD:$PATH"
-export CC=$(basename $CC)
-export CXX=$(basename $CXX)
+#export PATH="$PWD:$PATH"
+#export CC=$(basename $CC)
+#export CXX=$(basename $CXX)
 export LIBDIR=$PREFIX/lib
 export INCLUDEDIR=$PREFIX/include
 
@@ -45,6 +45,7 @@ export TF_SYSTEM_LIBS="
   snappy
   zlib
   "
+
 sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
 
 # do not build with MKL support
@@ -65,12 +66,12 @@ else
   export LDFLAGS="${LDFLAGS} -lrt"
 fi
 
-source ${RECIPE_DIR}/gen-bazel-toolchain.sh
-
 if [[ "${target_platform}" == "osx-64" ]]; then
   # Tensorflow doesn't cope yet with an explicit architecture (darwin_x86_64) on osx-64 yet.
   TARGET_CPU=darwin
 fi
+
+source ${RECIPE_DIR}/gen-bazel-toolchain.sh
 
 # If you really want to see what is executed, add --subcommands
 BUILD_OPTS="
@@ -80,7 +81,11 @@ BUILD_OPTS="
     --config=opt
     --define=PREFIX=${PREFIX}
     --define=PROTOBUF_INCLUDE_PATH=${PREFIX}/include
-    --cpu=${TARGET_CPU}"
+    --cpu=${TARGET_CPU}
+    --linkopt=-L${PREFIX}/lib
+    --strip=always
+    --define=LIBDIR=$PREFIX/lib
+    --define=INCLUDEDIR=$PREFIX/include"
 
 if [[ "${target_platform}" == "osx-arm64" ]]; then
   BUILD_OPTS="${BUILD_OPTS} --config=macos_arm64"
@@ -105,6 +110,46 @@ export TF_NEED_MPI=0
 export TF_DOWNLOAD_CLANG=0
 export TF_SET_ANDROID_WORKSPACE=0
 export TF_CONFIGURE_IOS=0
+
+## cuda settings
+if [[ ${cuda_compiler_version} != "None" ]]; then
+    export CUDA_TOOLKIT_PATH=/usr/local/cuda-${cuda_compiler_version}
+    export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
+    export USE_CUDA=1
+    export cuda=Y
+    if [[ ${cuda_compiler_version} == 9.0* ]]; then
+        export TF_CUDA_COMPUTE_CAPABILITIES=5.2,5.3,6.0,6.1,6.2
+    elif [[ ${cuda_compiler_version} == 9.2* ]]; then
+        export TF_CUDA_COMPUTE_CAPABILITIES=5.2,5.3,6.0,6.1,6.2,7.0
+    elif [[ ${cuda_compiler_version} == 10.* ]]; then
+        export TF_CUDA_COMPUTE_CAPABILITIES=5.2,5.3,6.0,6.1,6.2,7.0,7.2,7.5
+    elif [[ ${cuda_compiler_version} == 11.0* ]]; then
+        export TF_CUDA_COMPUTE_CAPABILITIES=5.2,5.3,6.0,6.1,6.2,7.0,7.2,7.5,8.0
+    elif [[ ${cuda_compiler_version} == 11.1 ]]; then
+        export TF_CUDA_COMPUTE_CAPABILITIES=5.2,5.3,6.0,6.1,6.2,7.0,7.2,7.5,8.0,8.6
+    elif [[ ${cuda_compiler_version} == 11.2 ]]; then
+        export TF_CUDA_COMPUTE_CAPABILITIES=5.2,5.3,6.0,6.1,6.2,7.0,7.2,7.5,8.0,8.6
+    else
+        echo "unsupported cuda version. edit build_pytorch.sh"
+        exit 1
+    fi
+    export TF_NEED_CUDA=1
+    export TF_CUDA_VERSION="${cuda_compiler_version}"
+    export TF_CUDNN_VERSION="${cudnn}"
+    export TF_CUDA_CLANG=0
+    export TF_DOWNLOAD_CLANG=0
+    export TF_NEED_TENSORRT=0
+    export GCC_HOST_COMPILER_PATH="${CC}"
+    export TF_NCCL_VERSION=""
+    BUILD_OPTS="${BUILD_OPTS} --config=cuda"
+    export CC_OPT_FLAGS="-march=nocona -mtune=haswell"
+    export GCC_HOST_COMPILER_PATH="${CC}"
+    ## Don't know why but system libs don't work with cuda config...
+    export TF_SYSTEM_LIBS=""
+fi
+
+bazel clean --expunge
+bazel shutdown
 
 # Get rid of unwanted defaults
 sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
