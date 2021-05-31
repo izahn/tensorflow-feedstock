@@ -169,13 +169,13 @@ else
     export CXX=$(basename $CXX)
     export LIBDIR=$PREFIX/lib
     export INCLUDEDIR=$PREFIX/include
-    sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
     source ${RECIPE_DIR}/gen-bazel-toolchain.sh
     # Get rid of unwanted defaults
     sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
     sed -i -e "/PREFIX/c\ " .bazelrc
 fi
 
+sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
 echo $(bazel --version) | cut -d" " -f2 > tensorflow/.bazelversion
 
 bazel clean --expunge
