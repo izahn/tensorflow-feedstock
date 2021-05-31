@@ -44,6 +44,7 @@ toolchain {
   cxx_builtin_include_directory: "${PREFIX}/lib/clang/10.0.0/include"
   cxx_builtin_include_directory: "${CONDA_BUILD_SYSROOT}/usr/include"
   cxx_builtin_include_directory: "${CONDA_BUILD_SYSROOT}/System/Library/Frameworks"
+  cxx_builtin_include_directory: "/usr/local/cuda/include"
   objcopy_embed_flag: "-I"
   objcopy_embed_flag: "binary"
   unfiltered_cxx_flag: "-no-canonical-prefixes"

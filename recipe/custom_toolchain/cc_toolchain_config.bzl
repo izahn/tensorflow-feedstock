@@ -308,7 +308,6 @@ def _impl(ctx):
 	    "${BUILD_PREFIX}/${HOST}/include/c++/${COMPILER_VERSION}",
             "${PREFIX}/include",
             "/usr/local/cuda/include",
-            "/usr/local/cuda-${cuda_compiler_version}/include",
         ]
 
     return cc_common.create_cc_toolchain_config_info(

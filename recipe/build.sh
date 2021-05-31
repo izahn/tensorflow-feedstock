@@ -1,6 +1,12 @@
 #!/bin/bash
 
-set -vex
+set -ex
+
+export PATH="$PWD:$PATH"
+export CC=$(basename $CC)
+export CXX=$(basename $CXX)
+export LIBDIR=$PREFIX/lib
+export INCLUDEDIR=$PREFIX/include
 
 # Needs a bazel build:
 # com_google_absl
@@ -39,6 +45,7 @@ export TF_SYSTEM_LIBS="
   snappy
   zlib
   "
+sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
 
 # do not build with MKL support
 export TF_NEED_MKL=0
@@ -53,14 +60,16 @@ export CC_OPT_FLAGS="${CFLAGS}"
 # Dependency graph:
 # bazel query 'deps(//tensorflow/tools/lib_package:libtensorflow)' --output graph > graph.in
 if [[ "${target_platform}" == osx-* ]]; then
-    export LDFLAGS="${LDFLAGS} -lz -framework CoreFoundation -Xlinker -undefined -Xlinker dynamic_lookup"
+  export LDFLAGS="${LDFLAGS} -lz -framework CoreFoundation -Xlinker -undefined -Xlinker dynamic_lookup"
 else
-    export LDFLAGS="${LDFLAGS} -lrt"
+  export LDFLAGS="${LDFLAGS} -lrt"
 fi
 
+source ${RECIPE_DIR}/gen-bazel-toolchain.sh
+
 if [[ "${target_platform}" == "osx-64" ]]; then
-    # Tensorflow doesn't cope yet with an explicit architecture (darwin_x86_64) on osx-64 yet.
-    TARGET_CPU=darwin
+  # Tensorflow doesn't cope yet with an explicit architecture (darwin_x86_64) on osx-64 yet.
+  TARGET_CPU=darwin
 fi
 
 # If you really want to see what is executed, add --subcommands
@@ -74,7 +83,7 @@ BUILD_OPTS="
     --cpu=${TARGET_CPU}"
 
 if [[ "${target_platform}" == "osx-arm64" ]]; then
-    BUILD_OPTS="${BUILD_OPTS} --config=macos_arm64"
+  BUILD_OPTS="${BUILD_OPTS} --config=macos_arm64"
 fi
 export TF_ENABLE_XLA=0
 export BUILD_TARGET="//tensorflow/tools/pip_package:build_pip_package //tensorflow/tools/lib_package:libtensorflow //tensorflow:libtensorflow_cc.so"
@@ -97,10 +106,11 @@ export TF_DOWNLOAD_CLANG=0
 export TF_SET_ANDROID_WORKSPACE=0
 export TF_CONFIGURE_IOS=0
 
-## cuda settings
-if [[ ${cuda_compiler_version} != "None" ]]; then
+# Get rid of unwanted defaults
+sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
+sed -i -e "/PREFIX/c\ " .bazelrc
 
-    sed -i -e "s:\${PREFIX}:${PREFIX}:" tensorflow/core/platform/default/build_config/BUILD
+if [[ ${cuda_compiler_version} != "None" ]]; then
 
     export CUDA_TOOLKIT_PATH=/usr/local/cuda-${cuda_compiler_version}
     export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
@@ -129,57 +139,14 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export TF_CUDA_CLANG=0
     export TF_DOWNLOAD_CLANG=0
     export TF_NEED_TENSORRT=0
-    export GCC_HOST_COMPILER_PATH="${CC}"
     export TF_NCCL_VERSION=""
-    export CC_OPT_FLAGS="-march=nocona -mtune=haswell"
-    export GCC_HOST_COMPILER_PATH="${CC}"
-    
-    BUILD_OPTS="
-    --copt=-march=nocona
-    --copt=-mtune=haswell
-    --copt=-ftree-vectorize
-    --copt=-fPIC
-    --copt=-fstack-protector-strong
-    --copt=-O2
-    --cxxopt=-fvisibility-inlines-hidden
-    --cxxopt=-fmessage-length=0
-    --linkopt=-zrelro
-    --linkopt=-znow
-    --linkopt=-L${PREFIX}/lib
-    --verbose_failures
-    --config=opt
-    --config=cuda
-    --strip=always
-    --color=yes
-    --curses=no
-    --action_env=PYTHON_BIN_PATH=${PYTHON}
-    --action_env=PYTHON_LIB_PATH=${SP_DIR}
-    --python_path=${PYTHON}
-    --define=PREFIX=$PREFIX
-    --copt=-DNO_CONSTEXPR_FOR_YOU=1
-    --host_copt=-DNO_CONSTEXPR_FOR_YOU=1
-    --define=LIBDIR=$PREFIX/lib
-    --define=INCLUDEDIR=$PREFIX/include"
-
-    ## Doesn't work with CUDA builds, don't know why
-    export TF_SYSTEM_LIBS=""
-else
-    export PATH="$PWD:$PATH"
-    export CC=$(basename $CC)
-    export CXX=$(basename $CXX)
-    export LIBDIR=$PREFIX/lib
-    export INCLUDEDIR=$PREFIX/include
-    source ${RECIPE_DIR}/gen-bazel-toolchain.sh
-    # Get rid of unwanted defaults
-    sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
-    sed -i -e "/PREFIX/c\ " .bazelrc
+    BUILD_OPTS="${BUILD_OPTS} --config=cuda"
+    export GCC_HOST_COMPILER_PATH="${GCC}"
+    #CC_OPT_FLAGS=$(echo $CFLAGS | sed "s/ -I/ -isystem /g")
+    CC_OPT_FLAGS=$(echo $CFLAGS | sed 's:-I/usr/local/cuda/include::g')
 fi
 
-sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
 echo $(bazel --version) | cut -d" " -f2 > tensorflow/.bazelversion
-
-bazel clean --expunge
-bazel shutdown
 
 ./configure
 echo "build --config=noaws" >> .bazelrc
@@ -190,4 +157,3 @@ bazel ${BAZEL_OPTS} build ${BUILD_OPTS} ${BUILD_TARGET}
 # build a whl file
 mkdir -p $SRC_DIR/tensorflow_pkg
 bash -x bazel-bin/tensorflow/tools/pip_package/build_pip_package $SRC_DIR/tensorflow_pkg
-
