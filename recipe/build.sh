@@ -145,7 +145,7 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export TF_DOWNLOAD_CLANG=0
     export TF_NEED_TENSORRT=0
     export TF_NCCL_VERSION=""
-    BUILD_OPTS="${BUILD_OPTS} --config=cuda --linkopt=-L${PREFIX}/lib --define=LIBDIR=${PREFIX}/lib"
+    BUILD_OPTS="${BUILD_OPTS} --config=cuda"
 fi
 
 echo $(bazel --version) | cut -d" " -f2 > tensorflow/.bazelversion
