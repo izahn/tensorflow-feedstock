@@ -7,6 +7,11 @@ export CC=$(basename $CC)
 export CXX=$(basename $CXX)
 export LIBDIR=$PREFIX/lib
 export INCLUDEDIR=$PREFIX/include
+export GCC_HOST_COMPILER_PATH="${GCC}"
+## includes should be done in bazel config
+export CFLAGS=$(echo $CFLAGS | sed 's:-I/usr/local/cuda/include::g')
+export CPPFLAGS=$(echo $CPPFLAGS | sed 's:-I/usr/local/cuda/include::g')
+export CXXFLAGS=$(echo $CXXFLAGS | sed 's:-I/usr/local/cuda/include::g')
 
 # Needs a bazel build:
 # com_google_absl
@@ -141,9 +146,6 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export TF_NEED_TENSORRT=0
     export TF_NCCL_VERSION=""
     BUILD_OPTS="${BUILD_OPTS} --config=cuda"
-    export GCC_HOST_COMPILER_PATH="${GCC}"
-    #CC_OPT_FLAGS=$(echo $CFLAGS | sed "s/ -I/ -isystem /g")
-    CC_OPT_FLAGS=$(echo $CFLAGS | sed 's:-I/usr/local/cuda/include::g')
 fi
 
 echo $(bazel --version) | cut -d" " -f2 > tensorflow/.bazelversion
