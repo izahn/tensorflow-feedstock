@@ -7,11 +7,6 @@ export CC=$(basename $CC)
 export CXX=$(basename $CXX)
 export LIBDIR=$PREFIX/lib
 export INCLUDEDIR=$PREFIX/include
-export GCC_HOST_COMPILER_PATH="${GCC}"
-## includes should be done in bazel config
-export CFLAGS=$(echo $CFLAGS | sed 's:-I/usr/local/cuda/include::g')
-export CPPFLAGS=$(echo $CPPFLAGS | sed 's:-I/usr/local/cuda/include::g')
-export CXXFLAGS=$(echo $CXXFLAGS | sed 's:-I/usr/local/cuda/include::g')
 
 # Needs a bazel build:
 # com_google_absl
@@ -51,14 +46,6 @@ export TF_SYSTEM_LIBS="
   zlib
   "
 sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
-
-# do not build with MKL support
-export TF_NEED_MKL=0
-export BAZEL_MKL_OPT=""
-
-mkdir -p ./bazel_output_base
-export BAZEL_OPTS=""
-export CC_OPT_FLAGS="${CFLAGS}"
 
 # Quick debug:
 # cp -r ${RECIPE_DIR}/build.sh . && bazel clean && bash -x build.sh --logging=6 | tee log.txt
@@ -117,15 +104,20 @@ sed -i -e "/PREFIX/c\ " .bazelrc
 
 if [[ ${cuda_compiler_version} != "None" ]]; then
 
+    export GCC_HOST_COMPILER_PATH="${GCC}"
+    export CFLAGS=$(echo $CFLAGS | sed 's:-I/usr/local/cuda/include::g')
+    export CPPFLAGS=$(echo $CPPFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/cuda:g')
+    export CXXFLAGS=$(echo $CXXFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/cuda:g')
     export CUDA_TOOLKIT_PATH=/usr/local/cuda-${cuda_compiler_version}
     export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
     export USE_CUDA=1
     export cuda=Y
-    if [[ ${cuda_compiler_version} == 9.0* ]]; then
-        export TF_CUDA_COMPUTE_CAPABILITIES=5.2,5.3,6.0,6.1,6.2
-    elif [[ ${cuda_compiler_version} == 9.2* ]]; then
-        export TF_CUDA_COMPUTE_CAPABILITIES=5.2,5.3,6.0,6.1,6.2,7.0
-    elif [[ ${cuda_compiler_version} == 10.* ]]; then
+    export TF_NEED_CUDA=1
+    export TF_CUDA_VERSION="${cuda_compiler_version}"
+    export TF_CUDNN_VERSION="${cudnn}"
+    export TF_NCCL_VERSION=""
+    
+    if [[ ${cuda_compiler_version} == 10.* ]]; then
         export TF_CUDA_COMPUTE_CAPABILITIES=5.2,5.3,6.0,6.1,6.2,7.0,7.2,7.5
     elif [[ ${cuda_compiler_version} == 11.0* ]]; then
         export TF_CUDA_COMPUTE_CAPABILITIES=5.2,5.3,6.0,6.1,6.2,7.0,7.2,7.5,8.0
@@ -134,21 +126,25 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     elif [[ ${cuda_compiler_version} == 11.2 ]]; then
         export TF_CUDA_COMPUTE_CAPABILITIES=5.2,5.3,6.0,6.1,6.2,7.0,7.2,7.5,8.0,8.6
     else
-        echo "unsupported cuda version. edit build_pytorch.sh"
+        echo "unsupported cuda version."
         exit 1
     fi
     
-    export TF_NEED_CUDA=1
-    export TF_CUDA_VERSION="${cuda_compiler_version}"
-    export TF_CUDNN_VERSION="${cudnn}"
-    export TF_CUDA_CLANG=0
-    export TF_DOWNLOAD_CLANG=0
-    export TF_NEED_TENSORRT=0
-    export TF_NCCL_VERSION=""
-    BUILD_OPTS="${BUILD_OPTS} --config=cuda --linkopt=-L${PREFIX}/lib --define=LIBDIR=${PREFIX}/lib"
+    BUILD_OPTS="${BUILD_OPTS} --config=cuda --copt=-L${PREFIX}/lib --define=LIBDIR=${PREFIX}/lib --define=PREFIX=$PREFIX"
 fi
 
+# do not build with MKL support
+export TF_NEED_MKL=0
+export BAZEL_MKL_OPT=""
+
+mkdir -p ./bazel_output_base
+export BAZEL_OPTS=""
+export CC_OPT_FLAGS="${CFLAGS}"
+
 echo $(bazel --version) | cut -d" " -f2 > tensorflow/.bazelversion
+
+bazel clean --expunge
+bazel shutdown
 
 ./configure
 echo "build --config=noaws" >> .bazelrc
