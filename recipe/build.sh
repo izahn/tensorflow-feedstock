@@ -105,6 +105,29 @@ sed -i -e "/PREFIX/c\ " .bazelrc
 if [[ ${cuda_compiler_version} != "None" ]]; then
 
     export GCC_HOST_COMPILER_PATH="${GCC}"
+    export GCC_HOST_COMPILER_PREFIX="$(dirname ${GCC})"
+    ln -s ${AR} $(dirname ${AR})/ar
+    ln -s ${AS} $(dirname ${AS})/as
+    ln -s ${CXXFILT} $(dirname ${CXXFILT})/c++filt
+    ln -s ${ELFEDIT} $(dirname ${ELFEDIT})/elfedit
+    ln -s ${GPROF} $(dirname ${GPROF})/gprof
+    ln -s ${LD_GOLD} $(dirname ${LD_GOLD})/ld.gold
+    ln -s ${LD} $(dirname ${LD})/ld
+    ln -s ${NM} $(dirname ${NM})/nm
+    ln -s ${OBJCOPY} $(dirname ${OBJCOPY})/objcopy
+    ln -s ${OBJDUMP} $(dirname ${OBJDUMP})/objdump
+    ln -s ${RANLIB} $(dirname ${RANLIB})/ranlib
+    ln -s ${READELF} $(dirname ${READELF})/readelf
+    ln -s ${SIZE} $(dirname ${SIZE})/size
+    ln -s ${STRINGS} $(dirname ${STRINGS})/strings
+    ln -s ${STRIP} $(dirname ${STRIP})/strip
+    ln -s ${CC} $(dirname ${CC})/cc
+    ln -s ${CPP} $(dirname ${CPP})/cpp
+    ln -s ${GCC_AR} $(dirname ${GCC_AR})/gcc-ar
+    ln -s ${GCC} $(dirname ${GCC})/gcc
+    ln -s ${GCC_NM} $(dirname ${GCC_NM})/gcc-nm
+    ln -s ${GCC_RANLIB} $(dirname ${GCC_RANLIB})/gcc-ranlib
+    ln -s ${CXX} $(dirname ${CXX})/c++
     export CFLAGS=$(echo $CFLAGS | sed 's:-I/usr/local/cuda/include::g')
     export CPPFLAGS=$(echo $CPPFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/cuda:g')
     export CXXFLAGS=$(echo $CXXFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/cuda:g')
