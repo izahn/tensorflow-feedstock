@@ -106,28 +106,6 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
 
     export GCC_HOST_COMPILER_PATH="${GCC}"
     export GCC_HOST_COMPILER_PREFIX="$(dirname ${GCC})"
-    ln -s ${AR} $(dirname ${AR})/ar
-    ln -s ${AS} $(dirname ${AS})/as
-    ln -s ${CXXFILT} $(dirname ${CXXFILT})/c++filt
-    ln -s ${ELFEDIT} $(dirname ${ELFEDIT})/elfedit
-    ln -s ${GPROF} $(dirname ${GPROF})/gprof
-    ln -s ${LD_GOLD} $(dirname ${LD_GOLD})/ld.gold
-    ln -s ${LD} $(dirname ${LD})/ld
-    ln -s ${NM} $(dirname ${NM})/nm
-    ln -s ${OBJCOPY} $(dirname ${OBJCOPY})/objcopy
-    ln -s ${OBJDUMP} $(dirname ${OBJDUMP})/objdump
-    ln -s ${RANLIB} $(dirname ${RANLIB})/ranlib
-    ln -s ${READELF} $(dirname ${READELF})/readelf
-    ln -s ${SIZE} $(dirname ${SIZE})/size
-    ln -s ${STRINGS} $(dirname ${STRINGS})/strings
-    ln -s ${STRIP} $(dirname ${STRIP})/strip
-    ln -s ${CC} $(dirname ${CC})/cc
-    ln -s ${CPP} $(dirname ${CPP})/cpp
-    ln -s ${GCC_AR} $(dirname ${GCC_AR})/gcc-ar
-    ln -s ${GCC} $(dirname ${GCC})/gcc
-    ln -s ${GCC_NM} $(dirname ${GCC_NM})/gcc-nm
-    ln -s ${GCC_RANLIB} $(dirname ${GCC_RANLIB})/gcc-ranlib
-    ln -s ${CXX} $(dirname ${CXX})/c++
     export CFLAGS=$(echo $CFLAGS | sed 's:-I/usr/local/cuda/include::g')
     export CPPFLAGS=$(echo $CPPFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/cuda:g')
     export CXXFLAGS=$(echo $CXXFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/cuda:g')
@@ -139,6 +117,31 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export TF_CUDA_VERSION="${cuda_compiler_version}"
     export TF_CUDNN_VERSION="${cudnn}"
     export TF_NCCL_VERSION=""
+
+    ## bazel is difficult and doesn't always respect environment variables.
+    ## binutils does some of this for us, but we want to be sure!
+    [[ -f $(dirname ${AR})/ar ]] || ln -s ${AR} $(dirname ${AR})/ar
+    [[ -f $(dirname ${AS}) ]] || ln -s ${AS} $(dirname ${AS})/as
+    [[ -f $(dirname ${CXXFILT}) ]] || ln -s ${CXXFILT} $(dirname ${CXXFILT})/c++filt
+    [[ -f $(dirname ${ELFEDIT}) ]] || ln -s ${ELFEDIT} $(dirname ${ELFEDIT})/elfedit
+    [[ -f $(dirname ${GPROF}) ]] || ln -s ${GPROF} $(dirname ${GPROF})/gprof
+    [[ -f $(dirname ${LD_GOLD}) ]] || ln -s ${LD_GOLD} $(dirname ${LD_GOLD})/ld.gold
+    [[ -f $(dirname ${LD}) ]] || ln -s ${LD} $(dirname ${LD})/ld
+    [[ -f $(dirname ${NM}) ]] || ln -s ${NM} $(dirname ${NM})/nm
+    [[ -f $(dirname ${OBJCOPY}) ]] || ln -s ${OBJCOPY} $(dirname ${OBJCOPY})/objcopy
+    [[ -f $(dirname ${OBJDUMP}) ]] || ln -s ${OBJDUMP} $(dirname ${OBJDUMP})/objdump
+    [[ -f $(dirname ${RANLIB}) ]] || ln -s ${RANLIB} $(dirname ${RANLIB})/ranlib
+    [[ -f $(dirname ${READELF}) ]] || ln -s ${READELF} $(dirname ${READELF})/readelf
+    [[ -f $(dirname ${SIZE}) ]] || ln -s ${SIZE} $(dirname ${SIZE})/size
+    [[ -f $(dirname ${STRINGS}) ]] || ln -s ${STRINGS} $(dirname ${STRINGS})/strings
+    [[ -f $(dirname ${STRIP}) ]] || ln -s ${STRIP} $(dirname ${STRIP})/strip
+    [[ -f $(dirname ${CC}) ]] || ln -s ${CC} $(dirname ${CC})/cc
+    [[ -f $(dirname ${CPP}) ]] || ln -s ${CPP} $(dirname ${CPP})/cpp
+    [[ -f $(dirname ${GCC_AR}) ]] || ln -s ${GCC_AR} $(dirname ${GCC_AR})/gcc-ar
+    [[ -f $(dirname ${GCC}) ]] || ln -s ${GCC} $(dirname ${GCC})/gcc
+    [[ -f $(dirname ${GCC_NM}) ]] || ln -s ${GCC_NM} $(dirname ${GCC_NM})/gcc-nm
+    [[ -f $(dirname ${GCC_RANLIB}) ]] || ln -s ${GCC_RANLIB} $(dirname ${GCC_RANLIB})/gcc-ranlib
+    [[ -f $(dirname ${CXX}) ]] || ln -s ${CXX} $(dirname ${CXX})/c++
     
     if [[ ${cuda_compiler_version} == 10.* ]]; then
         export TF_CUDA_COMPUTE_CAPABILITIES=5.2,5.3,6.0,6.1,6.2,7.0,7.2,7.5
@@ -152,8 +155,41 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
         echo "unsupported cuda version."
         exit 1
     fi
-    
-    BUILD_OPTS="${BUILD_OPTS} --config=cuda --copt=-L${PREFIX}/lib --define=LIBDIR=${PREFIX}/lib --define=PREFIX=$PREFIX"
+
+    ## cuda builds don't work with custom_toolchain, instead we hard-code arguments, mostly copied
+    ## from https://github.com/AnacondaRecipes/tensorflow_recipes/tree/master/tensorflow-base-gpu
+    BUILD_OPTS="
+    --verbose_failures
+    --config=opt
+    --define=PREFIX=${PREFIX}
+    --define=PROTOBUF_INCLUDE_PATH=${PREFIX}/include
+    --copt=-march=nocona
+    --copt=-mtune=haswell
+    --copt=-ftree-vectorize
+    --copt=-fPIC
+    --copt=-fstack-protector-strong
+    --copt=-O2
+    --cxxopt=-fvisibility-inlines-hidden
+    --cxxopt=-fmessage-length=0
+    --linkopt=-zrelro
+    --linkopt=-znow
+    --copt=-isystem${PREFIX}/include
+    --copt=-L${PREFIX}/lib
+    --linkopt=-L${PREFIX}/lib
+    --verbose_failures
+    --config=opt
+    --config=cuda
+    --strip=always
+    --color=yes
+    --curses=no
+    --action_env=PYTHON_BIN_PATH=${PYTHON}
+    --action_env=PYTHON_LIB_PATH=${SP_DIR}
+    --python_path=${PYTHON}
+    --define=PREFIX=$PREFIX
+    --copt=-DNO_CONSTEXPR_FOR_YOU=1
+    --host_copt=-DNO_CONSTEXPR_FOR_YOU=1
+    --define=LIBDIR=$PREFIX/lib
+    --define=INCLUDEDIR=$PREFIX/include"
 fi
 
 # do not build with MKL support
@@ -161,7 +197,7 @@ export TF_NEED_MKL=0
 export BAZEL_MKL_OPT=""
 
 mkdir -p ./bazel_output_base
-export BAZEL_OPTS=""
+export BAZEL_OPTS="--discard_analysis_cache --nokeep_state_after_build --notrack_incremental_state"
 export CC_OPT_FLAGS="${CFLAGS}"
 
 echo $(bazel --version) | cut -d" " -f2 > tensorflow/.bazelversion
