@@ -118,28 +118,28 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
 
     ## bazel is difficult and doesn't always respect environment variables.
     ## binutils does some of this for us, but we want to be sure!
-    [[ -f $(dirname ${AR})/ar ]] || ln -s ${AR} $(dirname ${AR})/ar
-    [[ -f $(dirname ${AS}) ]] || ln -s ${AS} $(dirname ${AS})/as
-    [[ -f $(dirname ${CXXFILT}) ]] || ln -s ${CXXFILT} $(dirname ${CXXFILT})/c++filt
-    [[ -f $(dirname ${ELFEDIT}) ]] || ln -s ${ELFEDIT} $(dirname ${ELFEDIT})/elfedit
-    [[ -f $(dirname ${GPROF}) ]] || ln -s ${GPROF} $(dirname ${GPROF})/gprof
-    [[ -f $(dirname ${LD_GOLD}) ]] || ln -s ${LD_GOLD} $(dirname ${LD_GOLD})/ld.gold
-    [[ -f $(dirname ${LD}) ]] || ln -s ${LD} $(dirname ${LD})/ld
-    [[ -f $(dirname ${NM}) ]] || ln -s ${NM} $(dirname ${NM})/nm
-    [[ -f $(dirname ${OBJCOPY}) ]] || ln -s ${OBJCOPY} $(dirname ${OBJCOPY})/objcopy
-    [[ -f $(dirname ${OBJDUMP}) ]] || ln -s ${OBJDUMP} $(dirname ${OBJDUMP})/objdump
-    [[ -f $(dirname ${RANLIB}) ]] || ln -s ${RANLIB} $(dirname ${RANLIB})/ranlib
-    [[ -f $(dirname ${READELF}) ]] || ln -s ${READELF} $(dirname ${READELF})/readelf
-    [[ -f $(dirname ${SIZE}) ]] || ln -s ${SIZE} $(dirname ${SIZE})/size
-    [[ -f $(dirname ${STRINGS}) ]] || ln -s ${STRINGS} $(dirname ${STRINGS})/strings
-    [[ -f $(dirname ${STRIP}) ]] || ln -s ${STRIP} $(dirname ${STRIP})/strip
-    [[ -f $(dirname ${CC}) ]] || ln -s ${CC} $(dirname ${CC})/cc
-    [[ -f $(dirname ${CPP}) ]] || ln -s ${CPP} $(dirname ${CPP})/cpp
-    [[ -f $(dirname ${GCC_AR}) ]] || ln -s ${GCC_AR} $(dirname ${GCC_AR})/gcc-ar
-    [[ -f $(dirname ${GCC}) ]] || ln -s ${GCC} $(dirname ${GCC})/gcc
-    [[ -f $(dirname ${GCC_NM}) ]] || ln -s ${GCC_NM} $(dirname ${GCC_NM})/gcc-nm
-    [[ -f $(dirname ${GCC_RANLIB}) ]] || ln -s ${GCC_RANLIB} $(dirname ${GCC_RANLIB})/gcc-ranlib
-    [[ -f $(dirname ${CXX}) ]] || ln -s ${CXX} $(dirname ${CXX})/c++
+    [[ -e $(dirname ${AR})/ar ]] || ln -s ${AR} $(dirname ${AR})/ar
+    [[ -e $(dirname ${AS}) ]] || ln -s ${AS} $(dirname ${AS})/as
+    [[ -e $(dirname ${CXXFILT}) ]] || ln -s ${CXXFILT} $(dirname ${CXXFILT})/c++filt
+    [[ -e $(dirname ${ELFEDIT}) ]] || ln -s ${ELFEDIT} $(dirname ${ELFEDIT})/elfedit
+    [[ -e $(dirname ${GPROF}) ]] || ln -s ${GPROF} $(dirname ${GPROF})/gprof
+    [[ -e $(dirname ${LD_GOLD}) ]] || ln -s ${LD_GOLD} $(dirname ${LD_GOLD})/ld.gold
+    [[ -e $(dirname ${LD}) ]] || ln -s ${LD} $(dirname ${LD})/ld
+    [[ -e $(dirname ${NM}) ]] || ln -s ${NM} $(dirname ${NM})/nm
+    [[ -e $(dirname ${OBJCOPY}) ]] || ln -s ${OBJCOPY} $(dirname ${OBJCOPY})/objcopy
+    [[ -e $(dirname ${OBJDUMP}) ]] || ln -s ${OBJDUMP} $(dirname ${OBJDUMP})/objdump
+    [[ -e $(dirname ${RANLIB}) ]] || ln -s ${RANLIB} $(dirname ${RANLIB})/ranlib
+    [[ -e $(dirname ${READELF}) ]] || ln -s ${READELF} $(dirname ${READELF})/readelf
+    [[ -e $(dirname ${SIZE}) ]] || ln -s ${SIZE} $(dirname ${SIZE})/size
+    [[ -e $(dirname ${STRINGS}) ]] || ln -s ${STRINGS} $(dirname ${STRINGS})/strings
+    [[ -e $(dirname ${STRIP}) ]] || ln -s ${STRIP} $(dirname ${STRIP})/strip
+    [[ -e $(dirname ${CC}) ]] || ln -s ${CC} $(dirname ${CC})/cc
+    [[ -e $(dirname ${CPP}) ]] || ln -s ${CPP} $(dirname ${CPP})/cpp
+    [[ -e $(dirname ${GCC_AR}) ]] || ln -s ${GCC_AR} $(dirname ${GCC_AR})/gcc-ar
+    [[ -e $(dirname ${GCC}) ]] || ln -s ${GCC} $(dirname ${GCC})/gcc
+    [[ -e $(dirname ${GCC_NM}) ]] || ln -s ${GCC_NM} $(dirname ${GCC_NM})/gcc-nm
+    [[ -e $(dirname ${GCC_RANLIB}) ]] || ln -s ${GCC_RANLIB} $(dirname ${GCC_RANLIB})/gcc-ranlib
+    [[ -e $(dirname ${CXX}) ]] || ln -s ${CXX} $(dirname ${CXX})/c++
     
     if [[ ${cuda_compiler_version} == 10.* ]]; then
         export TF_CUDA_COMPUTE_CAPABILITIES=5.2,5.3,6.0,6.1,6.2,7.0,7.2,7.5
