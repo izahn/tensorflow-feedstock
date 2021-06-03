@@ -57,8 +57,6 @@ else
   export LDFLAGS="${LDFLAGS} -lrt"
 fi
 
-source ${RECIPE_DIR}/gen-bazel-toolchain.sh
-
 if [[ "${target_platform}" == "osx-64" ]]; then
   # Tensorflow doesn't cope yet with an explicit architecture (darwin_x86_64) on osx-64 yet.
   TARGET_CPU=darwin
@@ -190,6 +188,8 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     --host_copt=-DNO_CONSTEXPR_FOR_YOU=1
     --define=LIBDIR=$PREFIX/lib
     --define=INCLUDEDIR=$PREFIX/include"
+else
+  source ${RECIPE_DIR}/gen-bazel-toolchain.sh  
 fi
 
 # do not build with MKL support
