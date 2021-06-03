@@ -197,7 +197,7 @@ export TF_NEED_MKL=0
 export BAZEL_MKL_OPT=""
 
 mkdir -p ./bazel_output_base
-export BAZEL_OPTS="--discard_analysis_cache --nokeep_state_after_build --notrack_incremental_state"
+export BAZEL_OPTS=""
 export CC_OPT_FLAGS="${CFLAGS}"
 
 echo $(bazel --version) | cut -d" " -f2 > tensorflow/.bazelversion
