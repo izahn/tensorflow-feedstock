@@ -36,6 +36,8 @@ requirements:
     - sed
     - coreutils
     - binutils
+    - clang  # [cuda_compiler_version != "None"]
+    - clangdev  # [cuda_compiler_version != "None"]
   host:
     # GPU requirements
     - cudnn                           # [cuda_compiler_version != "None"]

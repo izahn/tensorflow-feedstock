@@ -27,10 +27,7 @@ export TF_SYSTEM_LIBS="
   astor_archive
   astunparse_archive
   boringssl
-  com_github_googleapis_googleapis
-  com_github_googlecloudplatform_google_cloud_cpp
   com_github_grpc_grpc
-  com_google_protobuf
   curl
   cython
   dill_archive
@@ -42,8 +39,6 @@ export TF_SYSTEM_LIBS="
   org_sqlite
   png
   pybind11
-  snappy
-  zlib
   "
 sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
 
@@ -102,6 +97,7 @@ sed -i -e "/PREFIX/c\ " .bazelrc
 
 if [[ ${cuda_compiler_version} != "None" ]]; then
 
+    export TF_SYSTEM_LIBS=""
     export GCC_HOST_COMPILER_PATH="${GCC}"
     export GCC_HOST_COMPILER_PREFIX="$(dirname ${GCC})"
     export CFLAGS=$(echo $CFLAGS | sed 's:-I/usr/local/cuda/include::g')
@@ -109,12 +105,14 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export CXXFLAGS=$(echo $CXXFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/cuda:g')
     export CUDA_TOOLKIT_PATH=/usr/local/cuda-${cuda_compiler_version}
     export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
+    export CLANG_CUDA_COMPILER_PATH=${PREFIX}/bin/clang
     export USE_CUDA=1
     export cuda=Y
     export TF_NEED_CUDA=1
     export TF_CUDA_VERSION="${cuda_compiler_version}"
     export TF_CUDNN_VERSION="${cudnn}"
-    export TF_NCCL_VERSION=""
+    export TF_NCCL_VERSION=$(pkg-config nccl --modversion | grep -Po '\d+\.\d+')
+    export TF_NEED_AWS=0
 
     ## bazel is difficult and doesn't always respect environment variables.
     ## binutils does some of this for us, but we want to be sure!
