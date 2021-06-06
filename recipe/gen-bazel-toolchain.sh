@@ -50,7 +50,6 @@ pushd custom_toolchain
     touch cc_wrapper.sh
     export BAZEL_TOOLCHAIN_LIBCXX="stdc++"
     export BAZEL_TOOLCHAIN_GCC="${GCC}"
-    export GCC_HOST_COMPILER_PATH="${GCC}"
   fi
 
   export TARGET_SYSTEM="${HOST}"

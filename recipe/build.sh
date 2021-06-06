@@ -27,7 +27,10 @@ export TF_SYSTEM_LIBS="
   astor_archive
   astunparse_archive
   boringssl
+  com_github_googleapis_googleapis
+  com_github_googlecloudplatform_google_cloud_cpp
   com_github_grpc_grpc
+  com_google_protobuf
   curl
   cython
   dill_archive
@@ -39,8 +42,9 @@ export TF_SYSTEM_LIBS="
   org_sqlite
   png
   pybind11
+  snappy
+  zlib
   "
-sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
 
 # Quick debug:
 # cp -r ${RECIPE_DIR}/build.sh . && bazel clean && bash -x build.sh --logging=6 | tee log.txt
@@ -70,8 +74,11 @@ BUILD_OPTS="
 if [[ "${target_platform}" == "osx-arm64" ]]; then
   BUILD_OPTS="${BUILD_OPTS} --config=macos_arm64"
 fi
-export TF_ENABLE_XLA=0
+
 export BUILD_TARGET="//tensorflow/tools/pip_package:build_pip_package //tensorflow/tools/lib_package:libtensorflow //tensorflow:libtensorflow_cc.so"
+export BAZEL_MKL_OPT=""
+export BAZEL_OPTS=""
+export CC_OPT_FLAGS="${CFLAGS}"
 
 # Python settings
 export PYTHON_BIN_PATH=${PYTHON}
@@ -90,20 +97,19 @@ export TF_NEED_MPI=0
 export TF_DOWNLOAD_CLANG=0
 export TF_SET_ANDROID_WORKSPACE=0
 export TF_CONFIGURE_IOS=0
-
-# Get rid of unwanted defaults
-sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
-sed -i -e "/PREFIX/c\ " .bazelrc
+export TF_IGNORE_MAX_BAZEL_VERSION=1
+export TF_NEED_AWS=0
+export TF_ENABLE_XLA=0
+export TF_NEED_MKL=0
 
 if [[ ${cuda_compiler_version} != "None" ]]; then
 
     export TF_SYSTEM_LIBS=""
     export GCC_HOST_COMPILER_PATH="${GCC}"
     export GCC_HOST_COMPILER_PREFIX="$(dirname ${GCC})"
-    export CFLAGS=$(echo $CFLAGS | sed 's:-I/usr/local/cuda/include::g')
-    export CPPFLAGS=$(echo $CPPFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/cuda:g')
-    export CXXFLAGS=$(echo $CXXFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/cuda:g')
-    export CUDA_TOOLKIT_PATH=/usr/local/cuda-${cuda_compiler_version}
+    #export CFLAGS=$(echo $CFLAGS | sed 's:-I/usr/local/cuda/include::g')
+    #export CPPFLAGS=$(echo $CPPFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/cuda:g')
+    #export CXXFLAGS=$(echo $CXXFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/cuda:g')
     export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
     export CLANG_CUDA_COMPILER_PATH=${PREFIX}/bin/clang
     export USE_CUDA=1
@@ -112,32 +118,12 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export TF_CUDA_VERSION="${cuda_compiler_version}"
     export TF_CUDNN_VERSION="${cudnn}"
     export TF_NCCL_VERSION=$(pkg-config nccl --modversion | grep -Po '\d+\.\d+')
-    export TF_NEED_AWS=0
-
-    ## bazel is difficult and doesn't always respect environment variables.
-    ## binutils does some of this for us, but we want to be sure!
-    [[ -e $(dirname ${AR})/ar ]] || ln -s ${AR} $(dirname ${AR})/ar
-    [[ -e $(dirname ${AS}) ]] || ln -s ${AS} $(dirname ${AS})/as
-    [[ -e $(dirname ${CXXFILT}) ]] || ln -s ${CXXFILT} $(dirname ${CXXFILT})/c++filt
-    [[ -e $(dirname ${ELFEDIT}) ]] || ln -s ${ELFEDIT} $(dirname ${ELFEDIT})/elfedit
-    [[ -e $(dirname ${GPROF}) ]] || ln -s ${GPROF} $(dirname ${GPROF})/gprof
-    [[ -e $(dirname ${LD_GOLD}) ]] || ln -s ${LD_GOLD} $(dirname ${LD_GOLD})/ld.gold
-    [[ -e $(dirname ${LD}) ]] || ln -s ${LD} $(dirname ${LD})/ld
-    [[ -e $(dirname ${NM}) ]] || ln -s ${NM} $(dirname ${NM})/nm
-    [[ -e $(dirname ${OBJCOPY}) ]] || ln -s ${OBJCOPY} $(dirname ${OBJCOPY})/objcopy
-    [[ -e $(dirname ${OBJDUMP}) ]] || ln -s ${OBJDUMP} $(dirname ${OBJDUMP})/objdump
-    [[ -e $(dirname ${RANLIB}) ]] || ln -s ${RANLIB} $(dirname ${RANLIB})/ranlib
-    [[ -e $(dirname ${READELF}) ]] || ln -s ${READELF} $(dirname ${READELF})/readelf
-    [[ -e $(dirname ${SIZE}) ]] || ln -s ${SIZE} $(dirname ${SIZE})/size
-    [[ -e $(dirname ${STRINGS}) ]] || ln -s ${STRINGS} $(dirname ${STRINGS})/strings
-    [[ -e $(dirname ${STRIP}) ]] || ln -s ${STRIP} $(dirname ${STRIP})/strip
-    [[ -e $(dirname ${CC}) ]] || ln -s ${CC} $(dirname ${CC})/cc
-    [[ -e $(dirname ${CPP}) ]] || ln -s ${CPP} $(dirname ${CPP})/cpp
-    [[ -e $(dirname ${GCC_AR}) ]] || ln -s ${GCC_AR} $(dirname ${GCC_AR})/gcc-ar
-    [[ -e $(dirname ${GCC}) ]] || ln -s ${GCC} $(dirname ${GCC})/gcc
-    [[ -e $(dirname ${GCC_NM}) ]] || ln -s ${GCC_NM} $(dirname ${GCC_NM})/gcc-nm
-    [[ -e $(dirname ${GCC_RANLIB}) ]] || ln -s ${GCC_RANLIB} $(dirname ${GCC_RANLIB})/gcc-ranlib
-    [[ -e $(dirname ${CXX}) ]] || ln -s ${CXX} $(dirname ${CXX})/c++
+    export NCCL_ROOT_DIR=$PREFIX
+    export USE_STATIC_NCCL=0
+    export USE_STATIC_CUDNN=0
+    export CUDA_TOOLKIT_ROOT_DIR=$CUDA_HOME
+    export LDFLAGS="${LDFLAGS//-Wl,-z,now/-Wl,-z,lazy}"
+    export CC_OPT_FLAGS="-march=nocona -mtune=haswell"
     
     if [[ ${cuda_compiler_version} == 10.* ]]; then
         export TF_CUDA_COMPUTE_CAPABILITIES=5.2,5.3,6.0,6.1,6.2,7.0,7.2,7.5
@@ -187,24 +173,25 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     --define=LIBDIR=$PREFIX/lib
     --define=INCLUDEDIR=$PREFIX/include"
 else
-  source ${RECIPE_DIR}/gen-bazel-toolchain.sh  
+    source ${RECIPE_DIR}/gen-bazel-toolchain.sh
+    # Get rid of unwanted defaults
+    sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
+    sed -i -e "/PREFIX/c\ " .bazelrc
 fi
 
-# do not build with MKL support
-export TF_NEED_MKL=0
-export BAZEL_MKL_OPT=""
-
 mkdir -p ./bazel_output_base
-export BAZEL_OPTS=""
-export CC_OPT_FLAGS="${CFLAGS}"
+# Allow any bazel version
+  echo "*" > tensorflow/.bazelversion
 
-echo $(bazel --version) | cut -d" " -f2 > tensorflow/.bazelversion
+sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
+# Get rid of hardcoded versions, from
+# https://github.com/archlinux/svntogit-community/blob/packages/tensorflow/trunk/PKGBUILD
+sed -i -E "s/'([0-9a-z_-]+) .= [0-9].+[0-9]'/'\1'/" tensorflow/tools/pip_package/setup.py
 
 bazel clean --expunge
 bazel shutdown
 
 ./configure
-echo "build --config=noaws" >> .bazelrc
 
 # build using bazel
 bazel ${BAZEL_OPTS} build ${BUILD_OPTS} ${BUILD_TARGET}
