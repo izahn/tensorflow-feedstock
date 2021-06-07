@@ -8,48 +8,11 @@ export CXX=$(basename $CXX)
 export LIBDIR=$PREFIX/lib
 export INCLUDEDIR=$PREFIX/include
 
-# Needs a bazel build:
-# com_google_absl
-# Build failures in tensorflow/core/platform/s3/aws_crypto.cc
-# boringssl (i.e. system openssl)
-# Most importantly: Write a patch that uses system LLVM libs for sure as well as MLIR and oneDNN/mkldnn
-# TODO(check):
-# absl_py
-# com_github_googleapis_googleapis
-# com_github_googlecloudplatform_google_cloud_cpp
-# Needs c++17, try on linux
-#  com_googlesource_code_re2
-
-# The possible values are specified in third_party/systemlibs/syslibs_configure.bzl
-# The versions for them can be found in tensorflow/workspace.bzl
-export TF_SYSTEM_LIBS="
-  absl_py
-  astor_archive
-  astunparse_archive
-  boringssl
-  com_github_googleapis_googleapis
-  com_github_googlecloudplatform_google_cloud_cpp
-  com_github_grpc_grpc
-  com_google_protobuf
-  curl
-  cython
-  dill_archive
-  flatbuffers
-  gast_archive
-  gif
-  icu
-  libjpeg_turbo
-  org_sqlite
-  png
-  pybind11
-  snappy
-  zlib
-  "
-
 # Quick debug:
 # cp -r ${RECIPE_DIR}/build.sh . && bazel clean && bash -x build.sh --logging=6 | tee log.txt
 # Dependency graph:
 # bazel query 'deps(//tensorflow/tools/lib_package:libtensorflow)' --output graph > graph.in
+
 if [[ "${target_platform}" == osx-* ]]; then
   export LDFLAGS="${LDFLAGS} -lz -framework CoreFoundation -Xlinker -undefined -Xlinker dynamic_lookup"
 else
@@ -104,7 +67,6 @@ export TF_NEED_MKL=0
 
 if [[ ${cuda_compiler_version} != "None" ]]; then
 
-    export TF_SYSTEM_LIBS=""
     export GCC_HOST_COMPILER_PATH="${GCC}"
     export GCC_HOST_COMPILER_PREFIX="$(dirname ${GCC})"
     #export CFLAGS=$(echo $CFLAGS | sed 's:-I/usr/local/cuda/include::g')
@@ -173,6 +135,43 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     --define=LIBDIR=$PREFIX/lib
     --define=INCLUDEDIR=$PREFIX/include"
 else
+    # Needs a bazel build:
+    # com_google_absl
+    # Build failures in tensorflow/core/platform/s3/aws_crypto.cc
+    # boringssl (i.e. system openssl)
+    # Most importantly: Write a patch that uses system LLVM libs for sure as well as MLIR and oneDNN/mkldnn
+    # TODO(check):
+    # absl_py
+    # com_github_googleapis_googleapis
+    # com_github_googlecloudplatform_google_cloud_cpp
+    # Needs c++17, try on linux
+    #  com_googlesource_code_re2
+    
+    # The possible values are specified in third_party/systemlibs/syslibs_configure.bzl
+    # The versions for them can be found in tensorflow/workspace.bzl
+    export TF_SYSTEM_LIBS="
+  absl_py
+  astor_archive
+  astunparse_archive
+  boringssl
+  com_github_googleapis_googleapis
+  com_github_googlecloudplatform_google_cloud_cpp
+  com_github_grpc_grpc
+  com_google_protobuf
+  curl
+  cython
+  dill_archive
+  flatbuffers
+  gast_archive
+  gif
+  icu
+  libjpeg_turbo
+  org_sqlite
+  png
+  pybind11
+  snappy
+  zlib
+  "
     source ${RECIPE_DIR}/gen-bazel-toolchain.sh
     # Get rid of unwanted defaults
     sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
