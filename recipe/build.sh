@@ -134,6 +134,9 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     --host_copt=-DNO_CONSTEXPR_FOR_YOU=1
     --define=LIBDIR=$PREFIX/lib
     --define=INCLUDEDIR=$PREFIX/include"
+    # Get rid of hardcoded versions, from
+    # https://github.com/archlinux/svntogit-community/blob/packages/tensorflow/trunk/PKGBUILD
+    sed -i -E "s/'([0-9a-z_-]+) .= [0-9].+[0-9]'/'\1'/" tensorflow/tools/pip_package/setup.py    
 else
     # Needs a bazel build:
     # com_google_absl
@@ -176,16 +179,12 @@ else
     # Get rid of unwanted defaults
     sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
     sed -i -e "/PREFIX/c\ " .bazelrc
+    sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
 fi
 
 mkdir -p ./bazel_output_base
 # Allow any bazel version
-  echo "*" > tensorflow/.bazelversion
-
-sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
-# Get rid of hardcoded versions, from
-# https://github.com/archlinux/svntogit-community/blob/packages/tensorflow/trunk/PKGBUILD
-sed -i -E "s/'([0-9a-z_-]+) .= [0-9].+[0-9]'/'\1'/" tensorflow/tools/pip_package/setup.py
+echo "*" > tensorflow/.bazelversion
 
 bazel clean --expunge
 bazel shutdown

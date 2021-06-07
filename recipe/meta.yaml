@@ -10,8 +10,10 @@ source:
 
   patches:
     - patches/0001-relax-tolerence-in-special_math_test.patch  # [not linux]
-    - patches/0002-skip-read-only-debugger_cli_common-test.patch  # [not linux]
+    - patches/0002-skip-read-only-debugger_cli_common-test.patch
     - patches/0003-relax-precision-in-matrix_log_op_test.patch  # [not linux]
+    # requires setting GRPCIO_VERSION in build script
+    - patches/0004-loosen-requirements.patch    
     - patches/0005-osx-arm64.patch  # [osx and arm64]
     - 0001-do-not-include-B-usr-bin-flag.patch  # [cuda_compiler_version != "None"]
     - 0101-include-c-and-cc-headers.patch  # [cuda_compiler_version != "None"]
