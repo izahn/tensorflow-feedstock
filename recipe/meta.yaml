@@ -214,7 +214,7 @@ outputs:
     build:
       string: cuda{{ cuda_compiler_version | replace('.', '') }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
       string: cpu_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
-      skip: true  # [not linux]
+      skip: true  # [not linux or cuda_compiler_version != "None"]
     requirements:
       # build requirements needs to pick up the compiler run_exports
       build:
@@ -253,7 +253,7 @@ outputs:
     build:
       string: cuda{{ cuda_compiler_version | replace('.', '') }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
       string: cpu_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
-      skip: true  # [not linux]
+      skip: true  # [not linux or cuda_compiler_version != "None"]
     requirements:
       # build requirements needs to pick up the compiler run_exports
       build:

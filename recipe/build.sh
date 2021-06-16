@@ -70,9 +70,9 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export GCC_HOST_COMPILER_PATH="${GCC}"
     export GCC_HOST_COMPILER_PREFIX="$(dirname ${GCC})"
     #export CFLAGS=$(echo $CFLAGS | sed 's:-I/usr/local/cuda/include::g')
-    #export CPPFLAGS=$(echo $CPPFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/cuda:g')
-    #export CXXFLAGS=$(echo $CXXFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/cuda:g')
-    export TF_CUDA_PATHS="${PREFIX},/usr/local/cuda-${cuda_compiler_version},/usr"
+    #export CPPFLAGS=$(echo $CPPFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/app/app_bin/cuda/11.1:g')
+    #export CXXFLAGS=$(echo $CXXFLAGS | sed 's:-I/usr/local/cuda:-isystem/usr/local/app/app_bin/cuda/11.1:g')
+    export TF_CUDA_PATHS="${PREFIX},/usr/local/app/app_bin/cuda/11.1,/usr"
     export CLANG_CUDA_COMPILER_PATH=${PREFIX}/bin/clang
     export USE_CUDA=1
     export cuda=Y
@@ -83,7 +83,8 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export NCCL_ROOT_DIR=$PREFIX
     export USE_STATIC_NCCL=0
     export USE_STATIC_CUDNN=0
-    export CUDA_TOOLKIT_ROOT_DIR=$CUDA_HOME
+    export PATH="/usr/local/app/app_bin/cuda/11.1/bin:$PATH"
+    export CUDA_TOOLKIT_ROOT_DIR=/usr/local/app/app_bin/cuda/11.1
     export LDFLAGS="${LDFLAGS//-Wl,-z,now/-Wl,-z,lazy}"
     export CC_OPT_FLAGS="-march=nocona -mtune=haswell"
     
@@ -179,8 +180,9 @@ else
     # Get rid of unwanted defaults
     sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
     sed -i -e "/PREFIX/c\ " .bazelrc
-    sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
 fi
+
+sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
 
 mkdir -p ./bazel_output_base
 # Allow any bazel version
@@ -192,7 +194,7 @@ bazel shutdown
 ./configure
 
 # build using bazel
-bazel ${BAZEL_OPTS} build ${BUILD_OPTS} ${BUILD_TARGET}
+bazel ${BAZEL_OPTS} build --jobs 24 ${BUILD_OPTS} ${BUILD_TARGET}
 
 # build a whl file
 mkdir -p $SRC_DIR/tensorflow_pkg
