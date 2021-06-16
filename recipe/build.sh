@@ -192,6 +192,7 @@ bazel clean --expunge
 bazel shutdown
 
 ./configure
+echo "build --config=noaws" >> .bazelrc
 
 # build using bazel
 bazel ${BAZEL_OPTS} build --jobs 24 ${BUILD_OPTS} ${BUILD_TARGET}
