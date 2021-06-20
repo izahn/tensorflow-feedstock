@@ -104,10 +104,6 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     ## cuda builds don't work with custom_toolchain, instead we hard-code arguments, mostly copied
     ## from https://github.com/AnacondaRecipes/tensorflow_recipes/tree/master/tensorflow-base-gpu
     BUILD_OPTS="
-    --verbose_failures
-    --config=opt
-    --define=PREFIX=${PREFIX}
-    --define=PROTOBUF_INCLUDE_PATH=${PREFIX}/include
     --copt=-march=nocona
     --copt=-mtune=haswell
     --copt=-ftree-vectorize
@@ -135,9 +131,6 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     --host_copt=-DNO_CONSTEXPR_FOR_YOU=1
     --define=LIBDIR=$PREFIX/lib
     --define=INCLUDEDIR=$PREFIX/include"
-    # Get rid of hardcoded versions, from
-    # https://github.com/archlinux/svntogit-community/blob/packages/tensorflow/trunk/PKGBUILD
-    sed -i -E "s/'([0-9a-z_-]+) .= [0-9].+[0-9]'/'\1'/" tensorflow/tools/pip_package/setup.py    
 else
     # Needs a bazel build:
     # com_google_absl
@@ -177,16 +170,16 @@ else
   zlib
   "
     source ${RECIPE_DIR}/gen-bazel-toolchain.sh
-    # Get rid of unwanted defaults
-    sed -i -e "/PROTOBUF_INCLUDE_PATH/c\ " .bazelrc
-    sed -i -e "/PREFIX/c\ " .bazelrc
+    sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
 fi
-
-sed -i -e "s/GRPCIO_VERSION/${grpc_cpp}/" tensorflow/tools/pip_package/setup.py
 
 mkdir -p ./bazel_output_base
 # Allow any bazel version
 echo "*" > tensorflow/.bazelversion
+
+# Get rid of hardcoded versions, from
+# https://github.com/archlinux/svntogit-community/blob/packages/tensorflow/trunk/PKGBUILD
+sed -i -E "s/'([0-9a-z_-]+) .= [0-9].+[0-9]'/'\1'/" tensorflow/tools/pip_package/setup.py
 
 bazel clean --expunge
 bazel shutdown
