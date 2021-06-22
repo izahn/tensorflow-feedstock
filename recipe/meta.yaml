@@ -33,7 +33,8 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - {{ compiler('cuda') }}  # [cuda_compiler_version != "None"]
-    - bazel <4.0.0
+    - bazel <4.0.0  # [not osx]
+    - bazel >=4.1.0  # [osx]
     - nasm
     - sed
     - coreutils  # [cuda_compiler_version != "None"]
