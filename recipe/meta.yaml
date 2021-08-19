@@ -77,8 +77,8 @@ requirements:
     - wheel >=0.35
     - wrapt >=1.11.1
     - gast
-    - tensorboard >=2.4.0
-    - tensorflow-estimator >=2.4.0
+    - tensorboard >=2.5.0,<2.6
+    - tensorflow-estimator >=2.5.0,<2.6
 
 outputs:
   - name: tensorflow-base
@@ -142,8 +142,8 @@ outputs:
         # upstream wants exact pin for gast
         - gast
         # TF-API needs to move in sync
-        - tensorboard >=2.4.0
-        - tensorflow-estimator >=2.4.0
+        - tensorboard >=2.5.0,<2.6
+        - tensorflow-estimator >=2.5.0,<2.6
       run:
         - python
         - absl-py >=0.10.0
@@ -163,8 +163,8 @@ outputs:
         - grpcio
         - gast
         # TF-API needs to move in sync
-        - tensorboard >=2.4.0
-        - tensorflow-estimator >=2.4.0
+        - tensorboard >=2.5.0,<2.6
+        - tensorflow-estimator >=2.5.0,<2.6
     test:
       requires:
         - pip
