@@ -166,13 +166,10 @@ outputs:
         - tensorboard >=2.5.0,<2.6
         - tensorflow-estimator >=2.5.0,<2.6
     test:
-      requires:
-        - pip
       imports:
         - tensorflow
       commands:
-        - pip check
-        - tf_upgrade_v2 --help
+        - tf_upgrade_v1 --help
         - saved_model_cli --help
         - tflite_convert --help     # [not win]
         - toco_from_protos --help   # [not win]
