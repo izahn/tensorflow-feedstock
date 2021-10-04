@@ -111,10 +111,10 @@ bazel shutdown
 
 echo "build --local_cpu_resources=${CPU_COUNT}" >> .bazelrc
 
-build using bazel
+#build using bazel
 bazel ${BAZEL_OPTS} build ${BUILD_OPTS} ${BUILD_TARGET}
 
-build a whl file
+#build a whl file
 mkdir -p $SRC_DIR/tensorflow_pkg
 bash -x bazel-bin/tensorflow/tools/pip_package/build_pip_package $SRC_DIR/tensorflow_pkg
 
