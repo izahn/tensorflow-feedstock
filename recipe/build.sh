@@ -109,9 +109,15 @@ bazel shutdown
 
 ./configure
 
-# build using bazel
+build using bazel
 bazel ${BAZEL_OPTS} build ${BUILD_OPTS} ${BUILD_TARGET}
 
-# build a whl file
+build a whl file
 mkdir -p $SRC_DIR/tensorflow_pkg
 bash -x bazel-bin/tensorflow/tools/pip_package/build_pip_package $SRC_DIR/tensorflow_pkg
+
+# install the whl using pip
+pip install --no-deps $SRC_DIR/tensorflow_pkg/*.whl
+
+# The tensorboard package has the proper entrypoint
+rm -f ${PREFIX}/bin/tensorboard
