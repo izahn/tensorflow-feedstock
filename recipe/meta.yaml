@@ -106,7 +106,7 @@ test:
     - toco_from_protos --help
     - toco --help
 
-- extra:
+extra:
   feedstock-name: tensorflow
   recipe-maintainers:
     - farhantejani
