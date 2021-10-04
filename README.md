@@ -1,22 +1,13 @@
 About tensorflow
 ================
 
-Home: http://tensorflow.org/
+Home: 
 
-Package license: Apache-2.0
+Package license: 
 
 Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/tensorflow-feedstock/blob/master/LICENSE.txt)
 
-Summary: TensorFlow is an open source machine learning framework for everyone.
-
-Development: https://github.com/tensorflow/tensorflow
-
-Documentation: https://www.tensorflow.org/get_started/get_started
-
-TensorFlow provides multiple APIs.The lowest level API, TensorFlow Core
-provides you with complete programming control.
-Base package contains only tensorflow, not tensorflow-tensorboard.
-
+Summary: 
 
 Current build status
 ====================
@@ -160,7 +151,6 @@ Current release info
 
 | Name | Downloads | Version | Platforms |
 | --- | --- | --- | --- |
-| [![Conda Recipe](https://img.shields.io/badge/recipe-tensorflow-green.svg)](https://anaconda.org/conda-forge/tensorflow) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/tensorflow.svg)](https://anaconda.org/conda-forge/tensorflow) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/tensorflow.svg)](https://anaconda.org/conda-forge/tensorflow) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/tensorflow.svg)](https://anaconda.org/conda-forge/tensorflow) |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-tensorflow--base-green.svg)](https://anaconda.org/conda-forge/tensorflow-base) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/tensorflow-base.svg)](https://anaconda.org/conda-forge/tensorflow-base) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/tensorflow-base.svg)](https://anaconda.org/conda-forge/tensorflow-base) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/tensorflow-base.svg)](https://anaconda.org/conda-forge/tensorflow-base) |
 
 Installing tensorflow
@@ -173,16 +163,16 @@ conda config --add channels conda-forge
 conda config --set channel_priority strict
 ```
 
-Once the `conda-forge` channel has been enabled, `tensorflow, tensorflow-base` can be installed with:
+Once the `conda-forge` channel has been enabled, `tensorflow-base` can be installed with:
 
 ```
-conda install tensorflow tensorflow-base
+conda install tensorflow-base
 ```
 
-It is possible to list all of the versions of `tensorflow` available on your platform with:
+It is possible to list all of the versions of `tensorflow-base` available on your platform with:
 
 ```
-conda search tensorflow --channel conda-forge
+conda search tensorflow-base --channel conda-forge
 ```
 
 

@@ -109,6 +109,8 @@ bazel shutdown
 
 ./configure
 
+echo "build --local_cpu_resources=${CPU_COUNT}" >> .bazelrc
+
 build using bazel
 bazel ${BAZEL_OPTS} build ${BUILD_OPTS} ${BUILD_TARGET}
 
