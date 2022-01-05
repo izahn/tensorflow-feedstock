@@ -124,7 +124,7 @@ if [[ ${cuda_compiler_version} != "None" ]]; then
     export GCC_HOST_COMPILER_PATH="${GCC}"
     export GCC_HOST_COMPILER_PREFIX="$(dirname ${GCC})"
 
-    export TF_CUDA_PATHS="${PREFIX},${CUDA_HOME}"
+    export TF_CUDA_PATHS="${PREFIX},${CUDA_HOME},/usr/local/app/app_bin/cuda/11.1,/usr"
     export TF_NEED_CUDA=1
     export TF_CUDA_VERSION="${cuda_compiler_version}"
     export TF_CUDNN_VERSION="${cudnn}"
@@ -153,6 +153,7 @@ bazel shutdown
 ./configure
 
 # build using bazel
+echo "build --local_cpu_resources=8" >> .bazelrc
 bazel ${BAZEL_OPTS} build ${BUILD_OPTS} ${BUILD_TARGET}
 
 # build a whl file
